@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { CoachCard } from "@/components/CoachCard";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
+import { SidebarAd } from "@/components/SidebarAd";
 
 interface CoachWithRating {
   id: number;

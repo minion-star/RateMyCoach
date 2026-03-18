@@ -71,6 +71,25 @@ export function SearchHero() {
     <div className="relative py-16 md:py-24 lg:py-32 bg-[#F9F9F9] border-b border-black/5 overflow-hidden">
       <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-bl from-yellow-500/10 to-transparent pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-1/4 h-2/3 bg-gradient-to-tr from-gray-200/40 to-transparent pointer-events-none rounded-tr-[100px]" />
+{/* LEFT NATIVE AD */}
+<div className="hidden xl:flex absolute left-4 top-0 h-full w-[14.285%] items-center justify-center z-0">
+  <a href="https://hga.com" target="_blank" className="w-full h-full flex items-center justify-center">
+    <img
+      src="/ads/left-ad.jpg"
+      className="w-full h-[500px] object-cover opacity-40 hover:opacity-70 transition rounded-lg"
+    />
+  </a>
+</div>
+
+{/* RIGHT NATIVE AD */}
+<div className="hidden xl:flex absolute right-4 top-0 h-full w-[14.285%] items-center justify-center z-0">
+  <a href="https://hga.com" target="_blank" className="w-full h-full flex items-center justify-center">
+    <img
+      src="/ads/right-ad.jpg"
+      className="w-full h-[500px] object-cover opacity-40 hover:opacity-70 transition rounded-lg"
+    />
+  </a>
+</div>
 
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center max-w-4xl">
         
