@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import { upload, localStorageService } from "./local-storage";
 import { insertContactSchema } from "@shared/schema";
 
 export async function registerRoutes(
@@ -12,7 +12,116 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  registerObjectStorageRoutes(app);
+  // File upload endpoint for presigned URL flow replacement
+  app.post("/api/uploads/request-url", async (req, res) => {
+    try {
+      const { name, size, contentType } = req.body;
+
+      if (!name) {
+        return res.status(400).json({
+          error: "Missing required field: name",
+        });
+      }
+
+      if (size && size > 10 * 1024 * 1024) {
+        return res.status(400).json({
+          error: "File size exceeds maximum (10MB)",
+        });
+      }
+
+      // Generate a unique filename and return the presigned URL
+      const filename = localStorageService.generateFilename(name);
+      const uploadPath = `/uploads/${filename}`;
+      const uploadURL = `/api/uploads/avatars/${filename}`;
+      
+      res.json({
+        uploadURL,
+        objectPath: uploadPath,
+        metadata: { name, size, contentType },
+      });
+    } catch (error) {
+      console.error("Error preparing upload:", error);
+      res.status(500).json({ error: "Failed to prepare upload" });
+    }
+  });
+
+  // File upload endpoint - binary PUT for presigned URL flow
+  app.put("/api/uploads/:subdir/:filename", async (req, res) => {
+    try {
+      const { subdir, filename } = req.params;
+
+      // Validate subdir to prevent directory traversal
+      if (!subdir.match(/^[a-zA-Z0-9_-]+$/)) {
+        return res.status(400).json({ error: "Invalid subdirectory" });
+      }
+
+      // Validate filename
+      if (!filename || filename.includes("/") || filename.includes("\\")) {
+        return res.status(400).json({ error: "Invalid filename" });
+      }
+
+      const relativePath = await localStorageService.saveStream(
+        req,
+        filename,
+        subdir
+      );
+      const fileUrl = localStorageService.getFileUrl(relativePath);
+
+      res.json({
+        success: true,
+        fileUrl,
+        filePath: relativePath,
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
+  // File upload endpoint - multipart form data POST
+  app.post("/api/uploads", upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      const subdir = (req.body.subdir as string) || "files";
+      const relativePath = await localStorageService.saveFile(req.file, subdir);
+      const fileUrl = localStorageService.getFileUrl(relativePath);
+
+      res.json({
+        success: true,
+        fileUrl,
+        filePath: relativePath,
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
+  // File serving endpoint - handle both /uploads/filename and /uploads/subdir/filename
+  app.get("/uploads/:subdir/:filename", async (req, res) => {
+    try {
+      const filePath = `${req.params.subdir}/${req.params.filename}`;
+      await localStorageService.serveFile(filePath, res);
+    } catch (error) {
+      console.error("Error serving file:", error);
+      res.status(500).json({ error: "Failed to serve file" });
+    }
+  });
+
+  // Fallback for /uploads/filename (single-level paths)
+  app.get("/uploads/:filename", async (req, res) => {
+    try {
+      const filePath = `avatars/${req.params.filename}`;
+      await localStorageService.serveFile(filePath, res);
+    } catch (error) {
+      console.error("Error serving file:", error);
+      res.status(500).json({ error: "Failed to serve file" });
+    }
+  });
+
   
   app.get("/api/stats", async (req, res) => {
     try {
@@ -175,7 +284,7 @@ export async function registerRoutes(
       const hashedPassword = await bcrypt.hash(input.password, 10);
       
       let validatedProfilePicture: string | null = null;
-      if (input.profilePicture && input.profilePicture.startsWith('/objects/uploads/')) {
+      if (input.profilePicture && input.profilePicture.startsWith('/uploads/')) {
         validatedProfilePicture = input.profilePicture;
       }
       
@@ -376,7 +485,7 @@ export async function registerRoutes(
         email: z.string().email("Valid email is required"),
         message: z.string().min(10, "Message must be at least 10 characters"),
         attachmentUrl: z.string().nullable().optional().refine(
-          (val) => !val || val.startsWith("/objects/uploads/"),
+          (val) => !val || val.startsWith("/uploads/"),
           "Invalid attachment URL - must be an uploaded file"
         ),
       });
