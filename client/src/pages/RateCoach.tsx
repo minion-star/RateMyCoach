@@ -34,9 +34,6 @@ export default function RateCoach() {
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [coachInstagram, setCoachInstagram] = useState("");
-  const [coachEmail, setCoachEmail] = useState("");
-  const [coachPhone, setCoachPhone] = useState("");
-  const [coachWhatsApp, setCoachWhatsApp] = useState("");
   const [coachingPlatform, setCoachingPlatform] = useState("");
   
   const [responseTime, setResponseTime] = useState(0);
@@ -94,9 +91,6 @@ export default function RateCoach() {
     setSelectedCoachId(coach.id);
     setShowSuggestions(false);
     setCoachInstagram("");
-    setCoachEmail("");
-    setCoachPhone("");
-    setCoachWhatsApp("");
   };
 
   const isExistingCoach = selectedCoachId !== null;
@@ -105,9 +99,6 @@ export default function RateCoach() {
     mutationFn: async (data: {
       coachName: string;
       coachInstagram?: string;
-      coachEmail?: string;
-      coachPhone?: string;
-      coachWhatsapp?: string;
       coachingPlatform?: string;
       ratingResponseTime?: number;
       ratingKnowledge?: number;
@@ -143,9 +134,6 @@ export default function RateCoach() {
     setCoachName("");
     setSelectedCoachId(null);
     setCoachInstagram("");
-    setCoachEmail("");
-    setCoachPhone("");
-    setCoachWhatsApp("");
     setCoachingPlatform("");
     setResponseTime(0);
     setKnowledge(0);
@@ -228,9 +216,6 @@ export default function RateCoach() {
     submitReviewMutation.mutate({
       coachName,
       coachInstagram: coachInstagram || undefined,
-      coachEmail: coachEmail || undefined,
-      coachPhone: coachPhone || undefined,
-      coachWhatsapp: coachWhatsApp || undefined,
       coachingPlatform: coachingPlatform || undefined,
       ratingResponseTime: responseTime || undefined,
       ratingKnowledge: knowledge || undefined,
@@ -357,48 +342,6 @@ export default function RateCoach() {
                           </div>
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-[#333333] mb-1">
-                            Coach Email
-                          </label>
-                          <input
-                            type="email"
-                            value={coachEmail}
-                            onChange={(e) => setCoachEmail(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#F5C518] focus:border-transparent outline-none"
-                            placeholder="coach@example.com"
-                            data-testid="input-coach-email"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-[#333333] mb-1">
-                              Coach Phone Number
-                            </label>
-                            <input
-                              type="tel"
-                              value={coachPhone}
-                              onChange={(e) => setCoachPhone(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#F5C518] focus:border-transparent outline-none"
-                              placeholder="+1 234 567 8900"
-                              data-testid="input-coach-phone"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-[#333333] mb-1">
-                              Coach WhatsApp
-                            </label>
-                            <input
-                              type="tel"
-                              value={coachWhatsApp}
-                              onChange={(e) => setCoachWhatsApp(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#F5C518] focus:border-transparent outline-none"
-                              placeholder="+1 234 567 8900"
-                              data-testid="input-coach-whatsapp"
-                            />
-                          </div>
-                        </div>
                       </>
                     )}
 
@@ -435,7 +378,7 @@ export default function RateCoach() {
                 <Card>
                   <CardContent className="p-6 space-y-4">
                     <h2 className="text-lg font-bold text-[#202020] border-b border-gray-100 pb-3">
-                      How You Contact the Coach
+                      How the Coach Communicates
                     </h2>
                     
                     <div className="grid grid-cols-2 gap-3">
