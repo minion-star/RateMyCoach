@@ -15,7 +15,7 @@ export async function registerRoutes(
   // File upload endpoint for presigned URL flow replacement
   app.post("/api/uploads/request-url", async (req, res) => {
     try {
-      const { name, size, contentType } = req.body;
+      const { name, size, contentType, subdir = "avatars" } = req.body;
 
       if (!name) {
         return res.status(400).json({
@@ -29,10 +29,16 @@ export async function registerRoutes(
         });
       }
 
+      if (typeof subdir !== "string" || !subdir.match(/^[a-zA-Z0-9_-]+$/)) {
+        return res.status(400).json({
+          error: "Invalid upload subdirectory",
+        });
+      }
+
       // Generate a unique filename and return the presigned URL
       const filename = localStorageService.generateFilename(name);
-      const uploadPath = `/uploads/${filename}`;
-      const uploadURL = `/api/uploads/avatars/${filename}`;
+      const uploadPath = `/uploads/${subdir}/${filename}`;
+      const uploadURL = `/api/uploads/${subdir}/${filename}`;
       
       res.json({
         uploadURL,

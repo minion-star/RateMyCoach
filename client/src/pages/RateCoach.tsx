@@ -53,6 +53,7 @@ export default function RateCoach() {
     onSuccess: (response) => {
       setUploadedProofUrl(response.objectPath);
     },
+    subdir: "review_doc",
   });
 
   const { data: allCoaches = [] } = useQuery<Coach[]>({

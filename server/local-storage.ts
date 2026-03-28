@@ -111,10 +111,25 @@ export class LocalStorageService {
 
     try {
       const stat = fs.statSync(fullPath);
+      const filename = path.basename(fullPath);
+      const ext = path.extname(filename).toLowerCase();
+
+      const mimeTypes: Record<string, string> = {
+        ".pdf": "application/pdf",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+      };
+
+      const contentType = mimeTypes[ext] || "application/octet-stream";
+
       res.set({
-        "Content-Type": "application/octet-stream",
+        "Content-Type": contentType,
         "Content-Length": stat.size,
         "Cache-Control": "public, max-age=3600",
+        "Content-Disposition": `attachment; filename="${filename}"`,
       });
 
       const stream = fs.createReadStream(fullPath);

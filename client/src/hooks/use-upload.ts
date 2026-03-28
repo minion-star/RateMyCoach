@@ -16,6 +16,7 @@ interface UploadResponse {
 interface UseUploadOptions {
   onSuccess?: (response: UploadResponse) => void;
   onError?: (error: Error) => void;
+  subdir?: string;
 }
 
 
@@ -35,6 +36,7 @@ export function useUpload(options: UseUploadOptions = {}) {
           name: file.name,
           size: file.size,
           contentType: file.type || "application/octet-stream",
+          subdir: options.subdir,
         }),
       });
 
@@ -115,6 +117,7 @@ export function useUpload(options: UseUploadOptions = {}) {
           name: file.name,
           size: file.size,
           contentType: file.type || "application/octet-stream",
+          subdir: options.subdir,
         }),
       });
 
