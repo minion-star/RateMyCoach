@@ -100,14 +100,19 @@ export default function Auth() {
   });
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    if (field === "isAthlete" && value === true) {
-      setFormData((prev) => ({ ...prev, isAthlete: true, isCoach: false }));
-    } else if (field === "isCoach" && value === true) {
-      setFormData((prev) => ({ ...prev, isAthlete: false, isCoach: true }));
+    if (field === "role" && typeof value === "string") {
+      if (value === "athlete") {
+        setFormData((prev) => ({ ...prev, isAthlete: true, isCoach: false }));
+      } else if (value === "coach") {
+        setFormData((prev) => ({ ...prev, isAthlete: false, isCoach: true }));
+      } else if (value === "both") {
+        setFormData((prev) => ({ ...prev, isAthlete: true, isCoach: true }));
+      }
     } else {
       setFormData((prev) => ({ ...prev, [field]: value }));
     }
-    if (errors[field]) {
+
+    if (typeof field === "string" && errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
     if (errors.role) {
@@ -232,26 +237,41 @@ export default function Auth() {
               <>
                 <div>
                   <label className="block text-sm font-medium text-[#333333] mb-2">
-                    I'm a: <span className="text-red-500">*</span>
+                    Role <span className="text-red-500">*</span>
                   </label>
                   <div className="flex gap-6">
-                    <label className="flex items-center gap-2 cursor-pointer" data-testid="checkbox-athlete">
+                    <label className="flex items-center gap-2 cursor-pointer" data-testid="radio-athlete">
                       <input
-                        type="checkbox"
-                        checked={formData.isAthlete}
-                        onChange={(e) => handleInputChange("isAthlete", e.target.checked)}
+                        type="radio"
+                        name="role"
+                        value="athlete"
+                        checked={formData.isAthlete && !formData.isCoach}
+                        onChange={(e) => handleInputChange("role", e.target.value)}
                         className="w-5 h-5 rounded border-gray-300 text-[#F5C518] focus:ring-[#F5C518]"
                       />
                       <span className="text-[#333333] font-medium">Athlete</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer" data-testid="checkbox-coach">
+                    <label className="flex items-center gap-2 cursor-pointer" data-testid="radio-coach">
                       <input
-                        type="checkbox"
-                        checked={formData.isCoach}
-                        onChange={(e) => handleInputChange("isCoach", e.target.checked)}
+                        type="radio"
+                        name="role"
+                        value="coach"
+                        checked={!formData.isAthlete && formData.isCoach}
+                        onChange={(e) => handleInputChange("role", e.target.value)}
                         className="w-5 h-5 rounded border-gray-300 text-[#F5C518] focus:ring-[#F5C518]"
                       />
                       <span className="text-[#333333] font-medium">Coach</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer" data-testid="radio-both">
+                      <input
+                        type="radio"
+                        name="role"
+                        value="both"
+                        checked={formData.isAthlete && formData.isCoach}
+                        onChange={(e) => handleInputChange("role", e.target.value)}
+                        className="w-5 h-5 rounded border-gray-300 text-[#F5C518] focus:ring-[#F5C518]"
+                      />
+                      <span className="text-[#333333] font-medium">Both</span>
                     </label>
                   </div>
                   {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
