@@ -19,6 +19,7 @@ export default function Auth() {
   });
 
   const [formData, setFormData] = useState({
+    role: "" as "" | "athlete" | "coach" | "both",
     isAthlete: false,
     isCoach: false,
     name: "",
@@ -100,19 +101,19 @@ export default function Auth() {
   });
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    if (field === "role" && typeof value === "string") {
-      if (value === "athlete") {
-        setFormData((prev) => ({ ...prev, isAthlete: true, isCoach: false }));
-      } else if (value === "coach") {
-        setFormData((prev) => ({ ...prev, isAthlete: false, isCoach: true }));
-      } else if (value === "both") {
-        setFormData((prev) => ({ ...prev, isAthlete: true, isCoach: true }));
-      }
+    if (field === "role") {
+      const role = value as "athlete" | "coach" | "both";
+      setFormData((prev) => ({
+        ...prev,
+        role,
+        isAthlete: role === "athlete" || role === "both",
+        isCoach: role === "coach" || role === "both",
+      }));
     } else {
       setFormData((prev) => ({ ...prev, [field]: value }));
     }
 
-    if (typeof field === "string" && errors[field]) {
+    if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
     if (errors.role) {
@@ -137,8 +138,8 @@ export default function Auth() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.isAthlete && !formData.isCoach) {
-      newErrors.role = "Please select at least one role";
+    if (!formData.role) {
+      newErrors.role = "Please select a role";
     }
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
@@ -158,13 +159,13 @@ export default function Auth() {
     } else if (formData.verificationAnswer.trim().toLowerCase() !== "derek lunsford") {
       newErrors.verificationAnswer = "Wrong answer";
     }
-    if (formData.isCoach && !formData.description.trim()) {
+    if ((formData.isCoach || formData.role === "both") && !formData.description.trim()) {
       newErrors.description = "Description is required for coaches";
     }
-    if (formData.isCoach && formData.specialties.length === 0) {
+    if ((formData.isCoach || formData.role === "both") && formData.specialties.length === 0) {
       newErrors.specialties = "Please select at least one specialty";
     }
-    if (formData.isCoach && !uploadedImagePath) {
+    if ((formData.isCoach || formData.role === "both") && !uploadedImagePath) {
       newErrors.profilePicture = "Profile picture is required for coaches";
     }
 
@@ -177,16 +178,19 @@ export default function Auth() {
     
     if (isRegister) {
       if (validateForm()) {
+        const isCoach = formData.role === "coach" || formData.role === "both";
+        const isAthlete = formData.role === "athlete" || formData.role === "both";
+
         registerMutation.mutate({
           name: formData.name,
           email: formData.email,
           password: formData.password,
           instagram: formData.instagram || undefined,
           profilePicture: uploadedImagePath || undefined,
-          description: formData.isCoach ? formData.description || undefined : undefined,
-          specialties: formData.isCoach && formData.specialties.length > 0 ? formData.specialties : undefined,
-          isAthlete: formData.isAthlete,
-          isCoach: formData.isCoach,
+          description: isCoach ? formData.description || undefined : undefined,
+          specialties: isCoach && formData.specialties.length > 0 ? formData.specialties : undefined,
+          isAthlete,
+          isCoach,
           verificationAnswer: formData.verificationAnswer,
         });
       }
@@ -237,7 +241,7 @@ export default function Auth() {
               <>
                 <div>
                   <label className="block text-sm font-medium text-[#333333] mb-2">
-                    Role <span className="text-red-500">*</span>
+                    I'm a: <span className="text-red-500">*</span>
                   </label>
                   <div className="flex gap-6">
                     <label className="flex items-center gap-2 cursor-pointer" data-testid="radio-athlete">
@@ -245,7 +249,7 @@ export default function Auth() {
                         type="radio"
                         name="role"
                         value="athlete"
-                        checked={formData.isAthlete && !formData.isCoach}
+                        checked={formData.role === "athlete"}
                         onChange={(e) => handleInputChange("role", e.target.value)}
                         className="w-5 h-5 rounded border-gray-300 text-[#F5C518] focus:ring-[#F5C518]"
                       />
@@ -256,7 +260,7 @@ export default function Auth() {
                         type="radio"
                         name="role"
                         value="coach"
-                        checked={!formData.isAthlete && formData.isCoach}
+                        checked={formData.role === "coach"}
                         onChange={(e) => handleInputChange("role", e.target.value)}
                         className="w-5 h-5 rounded border-gray-300 text-[#F5C518] focus:ring-[#F5C518]"
                       />
@@ -267,7 +271,7 @@ export default function Auth() {
                         type="radio"
                         name="role"
                         value="both"
-                        checked={formData.isAthlete && formData.isCoach}
+                        checked={formData.role === "both"}
                         onChange={(e) => handleInputChange("role", e.target.value)}
                         className="w-5 h-5 rounded border-gray-300 text-[#F5C518] focus:ring-[#F5C518]"
                       />
@@ -326,7 +330,7 @@ export default function Auth() {
               {isRegister && errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
             </div>
 
-            {isRegister && formData.isCoach && (
+            {isRegister && (formData.role === "coach" || formData.role === "both") && (
               <div>
                 <label className="block text-sm font-medium text-[#333333] mb-1">
                   Description <span className="text-red-500">*</span>
@@ -343,13 +347,13 @@ export default function Auth() {
               </div>
             )}
 
-            {isRegister && formData.isCoach && (
+            {isRegister && (formData.role === "coach" || formData.role === "both") && (
               <div>
                 <label className="block text-sm font-medium text-[#333333] mb-1">
                   Specialties <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-2 mt-2">
-                  {["Bodybuilding", "Classic", "Mens Physique", "Fit Model", "Wellness", "Bikini", "Figure", "Women's Physique", "Women's BB", "Physique Development", "Functional Issues (GI, Hormones, Etc.)"].map((specialty) => (
+                  {["Bodybuilding (Open)", "Physique development planning", "Men's Physique", "Women's Physique", "Classic Physique"].map((specialty) => (
                     <label key={specialty} className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"
@@ -374,7 +378,7 @@ export default function Auth() {
             {isRegister && (
               <div>
                 <label className="block text-sm font-medium text-[#333333] mb-1">
-                  Profile Picture {formData.isCoach && <span className="text-red-500">*</span>}
+                  Profile Picture {(formData.role === "coach" || formData.role === "both") && <span className="text-red-500">*</span>}
                 </label>
                 <div className="flex items-center gap-4">
                   {previewUrl && (

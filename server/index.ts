@@ -35,6 +35,8 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
+app.set("trust proxy", 1);
+
 app.use(
   session({
     store: new PgSession({
@@ -45,10 +47,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // change to true ONLY if HTTPS works
       httpOnly: true,
       sameSite: "lax",
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
 );

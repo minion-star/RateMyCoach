@@ -317,6 +317,19 @@ export async function registerRoutes(
       }
 
       req.session.userId = user.id;
+
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Session error" });
+        }
+
+        res.json({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        });
+      });   
       
       res.status(201).json({
         id: user.id,
@@ -356,6 +369,19 @@ export async function registerRoutes(
 
       req.session.userId = user.id;
       
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Session error" });
+        }
+
+        res.json({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        });
+      });
+
       res.json({
         id: user.id,
         name: user.name,
