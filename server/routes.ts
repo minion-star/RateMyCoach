@@ -6,12 +6,12 @@ import { z } from "zod";
 import bcrypt from "bcrypt";
 import { upload, localStorageService } from "./local-storage";
 import { insertContactSchema } from "@shared/schema";
+import nodemailer from "nodemailer";
 
 export async function registerRoutes(
   httpServer: Server,
-  app: Express
+  app: Express,
 ): Promise<Server> {
-  
   // File upload endpoint for presigned URL flow replacement
   app.post("/api/uploads/request-url", async (req, res) => {
     try {
@@ -39,7 +39,7 @@ export async function registerRoutes(
       const filename = localStorageService.generateFilename(name);
       const uploadPath = `/uploads/${subdir}/${filename}`;
       const uploadURL = `/api/uploads/${subdir}/${filename}`;
-      
+
       res.json({
         uploadURL,
         objectPath: uploadPath,
@@ -69,7 +69,7 @@ export async function registerRoutes(
       const relativePath = await localStorageService.saveStream(
         req,
         filename,
-        subdir
+        subdir,
       );
       const fileUrl = localStorageService.getFileUrl(relativePath);
 
@@ -128,7 +128,6 @@ export async function registerRoutes(
     }
   });
 
-  
   app.get("/api/stats", async (req, res) => {
     try {
       const coaches = await storage.getCoaches();
@@ -156,7 +155,7 @@ export async function registerRoutes(
   app.get(api.coaches.get.path, async (req, res) => {
     const coach = await storage.getCoach(Number(req.params.id));
     if (!coach) {
-      return res.status(404).json({ message: 'Coach not found' });
+      return res.status(404).json({ message: "Coach not found" });
     }
     res.json(coach);
   });
@@ -183,7 +182,7 @@ export async function registerRoutes(
       }
 
       const input = api.reviews.create.input.parse(req.body);
-      
+
       const reviewData = {
         coachName: input.coachName,
         coachInstagram: input.coachInstagram || null,
@@ -201,16 +200,16 @@ export async function registerRoutes(
         proofUrl: input.proofUrl || null,
         authorName: user.name,
         userId: user.id,
-        status: 'pending',
+        status: "pending",
       };
-      
+
       const review = await storage.createReview(reviewData);
       res.status(201).json(review);
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({
           message: err.errors[0].message,
-          field: err.errors[0].path.join('.'),
+          field: err.errors[0].path.join("."),
         });
       }
       throw err;
@@ -231,20 +230,29 @@ export async function registerRoutes(
       }
     }
 
-    const approvedReviews = await storage.getApprovedReviewsByCoachName(coach.name);
+    const approvedReviews = await storage.getApprovedReviewsByCoachName(
+      coach.name,
+    );
 
     const reviewEmails: string[] = [];
     const reviewPhones: string[] = [];
     const reviewWhatsapps: string[] = [];
 
     for (const review of approvedReviews) {
-      if (review.coachEmail && review.coachEmail !== coachSignupEmail && !reviewEmails.includes(review.coachEmail)) {
+      if (
+        review.coachEmail &&
+        review.coachEmail !== coachSignupEmail &&
+        !reviewEmails.includes(review.coachEmail)
+      ) {
         reviewEmails.push(review.coachEmail);
       }
       if (review.coachPhone && !reviewPhones.includes(review.coachPhone)) {
         reviewPhones.push(review.coachPhone);
       }
-      if (review.coachWhatsapp && !reviewWhatsapps.includes(review.coachWhatsapp)) {
+      if (
+        review.coachWhatsapp &&
+        !reviewWhatsapps.includes(review.coachWhatsapp)
+      ) {
         reviewWhatsapps.push(review.coachWhatsapp);
       }
     }
@@ -260,24 +268,27 @@ export async function registerRoutes(
 
   app.get(api.reviews.getByCoachName.path, async (req, res) => {
     const coachName = decodeURIComponent(String(req.params.coachName));
-    const approvedReviews = await storage.getApprovedReviewsByCoachName(coachName);
-    res.json(approvedReviews.map(r => ({
-      ...r,
-      createdAt: r.createdAt?.toISOString() ?? null,
-    })));
+    const approvedReviews =
+      await storage.getApprovedReviewsByCoachName(coachName);
+    res.json(
+      approvedReviews.map((r) => ({
+        ...r,
+        createdAt: r.createdAt?.toISOString() ?? null,
+      })),
+    );
   });
 
   app.post(api.auth.register.path, async (req, res) => {
     try {
       const input = api.auth.register.input.parse(req.body);
-      
+
       if (input.verificationAnswer.trim().toLowerCase() !== "derek lunsford") {
         return res.status(400).json({
           message: "Incorrect verification answer",
           field: "verificationAnswer",
         });
       }
-      
+
       const normalizedEmail = input.email.trim().toLowerCase();
       const existingUser = await storage.getUserByEmail(normalizedEmail);
       if (existingUser) {
@@ -288,12 +299,15 @@ export async function registerRoutes(
       }
 
       const hashedPassword = await bcrypt.hash(input.password, 10);
-      
+
       let validatedProfilePicture: string | null = null;
-      if (input.profilePicture && input.profilePicture.startsWith('/uploads/')) {
+      if (
+        input.profilePicture &&
+        input.profilePicture.startsWith("/uploads/")
+      ) {
         validatedProfilePicture = input.profilePicture;
       }
-      
+
       const user = await storage.createUser({
         name: input.name,
         email: normalizedEmail,
@@ -318,7 +332,6 @@ export async function registerRoutes(
 
       req.session.userId = user.id;
 
-      
       res.status(201).json({
         id: user.id,
         name: user.name,
@@ -330,7 +343,7 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         return res.status(400).json({
           message: err.errors[0].message,
-          field: err.errors[0].path.join('.'),
+          field: err.errors[0].path.join("."),
         });
       }
       throw err;
@@ -340,8 +353,10 @@ export async function registerRoutes(
   app.post(api.auth.login.path, async (req, res) => {
     try {
       const input = api.auth.login.input.parse(req.body);
-      
-      const user = await storage.getUserByEmail(input.email.trim().toLowerCase());
+
+      const user = await storage.getUserByEmail(
+        input.email.trim().toLowerCase(),
+      );
       if (!user) {
         return res.status(401).json({
           message: "Invalid email or password",
@@ -356,7 +371,6 @@ export async function registerRoutes(
       }
 
       req.session.userId = user.id;
-      
 
       res.json({
         id: user.id,
@@ -365,13 +379,13 @@ export async function registerRoutes(
         isAthlete: user.isAthlete ?? false,
         isCoach: user.isCoach ?? false,
         profilePicture: user.profilePicture,
-        role: user.role ?? 'user',
+        role: user.role ?? "user",
       });
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({
           message: err.errors[0].message,
-          field: err.errors[0].path.join('.'),
+          field: err.errors[0].path.join("."),
         });
       }
       throw err;
@@ -383,7 +397,7 @@ export async function registerRoutes(
       if (err) {
         return res.status(500).json({ success: false });
       }
-      res.clearCookie('connect.sid');
+      res.clearCookie("connect.sid");
       res.json({ success: true });
     });
   });
@@ -405,7 +419,7 @@ export async function registerRoutes(
       isAthlete: user.isAthlete ?? false,
       isCoach: user.isCoach ?? false,
       profilePicture: user.profilePicture,
-      role: user.role ?? 'user',
+      role: user.role ?? "user",
     });
   });
 
@@ -416,15 +430,17 @@ export async function registerRoutes(
     }
 
     const user = await storage.getUser(req.session.userId);
-    if (!user || user.role !== 'admin') {
+    if (!user || user.role !== "admin") {
       return res.status(403).json({ message: "Admin access required" });
     }
 
     const pendingReviews = await storage.getPendingReviews();
-    res.json(pendingReviews.map(r => ({
-      ...r,
-      createdAt: r.createdAt?.toISOString() ?? null,
-    })));
+    res.json(
+      pendingReviews.map((r) => ({
+        ...r,
+        createdAt: r.createdAt?.toISOString() ?? null,
+      })),
+    );
   });
 
   app.post(api.admin.approveReview.path, async (req, res) => {
@@ -433,7 +449,7 @@ export async function registerRoutes(
     }
 
     const user = await storage.getUser(req.session.userId);
-    if (!user || user.role !== 'admin') {
+    if (!user || user.role !== "admin") {
       return res.status(403).json({ message: "Admin access required" });
     }
 
@@ -446,7 +462,7 @@ export async function registerRoutes(
     // Check if coach exists, create if not
     const existingCoach = await storage.getCoachByName(review.coachName.trim());
     let coachCreated = false;
-    
+
     if (!existingCoach) {
       // Create a new coach from review data
       await storage.createCoach({
@@ -461,7 +477,7 @@ export async function registerRoutes(
       coachCreated = true;
     }
 
-    await storage.updateReviewStatus(reviewId, 'approved');
+    await storage.updateReviewStatus(reviewId, "approved");
     res.json({ success: true, coachCreated });
   });
 
@@ -471,7 +487,7 @@ export async function registerRoutes(
     }
 
     const user = await storage.getUser(req.session.userId);
-    if (!user || user.role !== 'admin') {
+    if (!user || user.role !== "admin") {
       return res.status(403).json({ message: "Admin access required" });
     }
 
@@ -481,7 +497,7 @@ export async function registerRoutes(
       return res.status(404).json({ message: "Review not found" });
     }
 
-    await storage.updateReviewStatus(reviewId, 'rejected');
+    await storage.updateReviewStatus(reviewId, "rejected");
     res.json({ success: true });
   });
 
@@ -492,10 +508,14 @@ export async function registerRoutes(
         firstName: z.string().min(1, "First name is required"),
         email: z.string().email("Valid email is required"),
         message: z.string().min(10, "Message must be at least 10 characters"),
-        attachmentUrl: z.string().nullable().optional().refine(
-          (val) => !val || val.startsWith("/uploads/"),
-          "Invalid attachment URL - must be an uploaded file"
-        ),
+        attachmentUrl: z
+          .string()
+          .nullable()
+          .optional()
+          .refine(
+            (val) => !val || val.startsWith("/uploads/"),
+            "Invalid attachment URL - must be an uploaded file",
+          ),
       });
 
       const validatedData = contactFormSchema.parse(req.body);
@@ -518,12 +538,108 @@ export async function registerRoutes(
     }
   });
 
+  const advertiseLastSentByIp = new Map<string, number>();
+  app.post("/api/advertise", async (req, res) => {
+    try {
+      const adminEmail = process.env.ADMIN_EMAIL;
+      if (!adminEmail) {
+        return res
+          .status(500)
+          .json({ message: "ADMIN_EMAIL is not configured" });
+      }
+
+      const ip =
+        (req.headers["x-forwarded-for"] as string | undefined)
+          ?.split(",")[0]
+          ?.trim() ||
+        req.socket.remoteAddress ||
+        "unknown";
+
+      const now = Date.now();
+      const lastSent = advertiseLastSentByIp.get(ip);
+      if (lastSent && now - lastSent < 60_000) {
+        return res
+          .status(429)
+          .json({
+            message: "Please wait a minute before sending another request",
+          });
+      }
+
+      const advertiseSchema = z.object({
+        fromEmail: z.string().email("Valid email is required"),
+        subject: z.string().min(1, "Subject is required").max(200),
+        body: z.string().min(1, "Message is required").max(10_000),
+      });
+
+      const input = advertiseSchema.parse(req.body);
+
+      const smtpHost = process.env.SMTP_HOST;
+      const smtpPort = process.env.SMTP_PORT
+        ? Number(process.env.SMTP_PORT)
+        : undefined;
+      const smtpUser = process.env.SMTP_USER;
+      const smtpPass = process.env.SMTP_PASS;
+      const smtpSecure = process.env.SMTP_SECURE === "true";
+      const smtpFrom = process.env.SMTP_FROM || smtpUser;
+
+      if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
+        return res.status(500).json({
+          message:
+            "SMTP is not configured (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)",
+        });
+      }
+
+      if (!smtpFrom) {
+        return res.status(500).json({ message: "SMTP_FROM is not configured" });
+      }
+
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpSecure,
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+
+      await transporter.sendMail({
+        from: smtpFrom,
+        to: adminEmail,
+        replyTo: input.fromEmail,
+        subject: input.subject,
+        text: `From: ${input.fromEmail}\n\n${input.body}`,
+      });
+
+      advertiseLastSentByIp.set(ip, now);
+      res.json({ success: true });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Advertise email error:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
   // Seed initial data if empty
   const existing = await storage.getCoaches();
   if (existing.length === 0) {
-    await storage.createCoach({ name: "John Smith", sport: "Football", imageUrl: null });
-    await storage.createCoach({ name: "Sarah Connor", sport: "Fitness", imageUrl: null });
-    await storage.createCoach({ name: "Mike Tyson", sport: "Boxing", imageUrl: null });
+    await storage.createCoach({
+      name: "John Smith",
+      sport: "Football",
+      imageUrl: null,
+    });
+    await storage.createCoach({
+      name: "Sarah Connor",
+      sport: "Fitness",
+      imageUrl: null,
+    });
+    await storage.createCoach({
+      name: "Mike Tyson",
+      sport: "Boxing",
+      imageUrl: null,
+    });
   }
 
   return httpServer;
