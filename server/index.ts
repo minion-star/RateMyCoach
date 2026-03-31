@@ -35,7 +35,6 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-app.set("trust proxy", 1);
 
 app.use(
   session({
@@ -47,7 +46,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // change to true ONLY if HTTPS works
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
