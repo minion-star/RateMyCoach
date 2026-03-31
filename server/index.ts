@@ -35,7 +35,6 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-
 app.use(
   session({
     store: new PgSession({
@@ -46,12 +45,12 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production" ? "auto" : false,
       httpOnly: true,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
-  })
+  }),
 );
 
 export function log(message: string, source = "express") {
