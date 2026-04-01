@@ -134,14 +134,21 @@ export function SearchHero() {
       {/* LEFT NATIVE AD */}
       <div className="hidden xl:flex absolute left-4 top-0 h-full w-[14.285%] items-center justify-center z-0">
         <div className="relative w-full h-full flex items-center justify-center">
-          <img
-            src="/ads/left-ad.jpg"
-            className="w-full h-[500px] object-cover opacity-40 hover:opacity-70 transition rounded-lg"
-          />
+          <a
+            href="https://hga.com"
+            target="_blank"
+            rel="noreferrer"
+            className="w-full h-full flex items-center justify-center"
+          >
+            <img
+              src="/ads/left-ad.jpg"
+              className="w-full h-[500px] object-cover opacity-40 hover:opacity-70 transition rounded-lg"
+            />
+          </a>
           <button
             type="button"
             onClick={() => setIsAdvertiseOpen(true)}
-            className="absolute inset-0 flex items-center justify-center"
+            className="w-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             aria-label="Advertise with us"
           >
             <span className="bg-white/90 text-[#202020] font-bold px-4 py-2 rounded-full shadow-sm border border-gray-200 hover:bg-white transition">
@@ -154,14 +161,21 @@ export function SearchHero() {
       {/* RIGHT NATIVE AD */}
       <div className="hidden xl:flex absolute right-4 top-0 h-full w-[14.285%] items-center justify-center z-0">
         <div className="relative w-full h-full flex items-center justify-center">
-          <img
-            src="/ads/right-ad.jpg"
-            className="w-full h-[500px] object-cover opacity-40 hover:opacity-70 transition rounded-lg"
-          />
+          <a
+            href="https://hga.com"
+            target="_blank"
+            rel="noreferrer"
+            className="w-full h-full flex items-center justify-center"
+          >
+            <img
+              src="/ads/right-ad.jpg"
+              className="w-full h-[500px] object-cover opacity-40 hover:opacity-70 transition rounded-lg"
+            />
+          </a>
           <button
             type="button"
             onClick={() => setIsAdvertiseOpen(true)}
-            className="absolute inset-0 flex items-center justify-center"
+            className="w-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             aria-label="Advertise with us"
           >
             <span className="bg-white/90 text-[#202020] font-bold px-4 py-2 rounded-full shadow-sm border border-gray-200 hover:bg-white transition">
