@@ -353,7 +353,7 @@ export default function Auth() {
                   Specialties <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-2 mt-2">
-                  {["Bodybuilding (Open)", "Gen Pop", "Men's Physique", "Women's Physique", "Classic Physique", "Bikini", "Wellness", "Figure". "Womens BB"].map((specialty) => (
+                  {["Bodybuilding (Open)", "Gen Pop", "Men's Physique", "Women's Physique", "Classic Physique", "Bikini", "Wellness", "Figure", "Womens BB"].map((specialty) => (
                     <label key={specialty} className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"
