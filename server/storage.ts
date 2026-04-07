@@ -60,6 +60,7 @@ export interface IStorage {
   getReview(id: number): Promise<Review | undefined>;
   createContactSubmission(contact: InsertContact): Promise<ContactSubmission>;
   updateUserRole(id: number, role: string): Promise<void>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
   getAthleteCount(): Promise<number>;
 }
 
@@ -220,6 +221,11 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserRole(id: number, role: string): Promise<void> {
     await db.update(users).set({ role }).where(eq(users.id, id));
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
+    await db.update(users).set(updates).where(eq(users.id, id));
+    return await this.getUser(id);
   }
 
   async getAthleteCount(): Promise<number> {

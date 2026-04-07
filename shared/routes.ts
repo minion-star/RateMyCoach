@@ -141,6 +141,30 @@ export const api = {
         401: errorSchemas.validation,
       },
     },
+    updateProfile: {
+      method: 'PUT' as const,
+      path: '/api/auth/profile',
+      input: z.object({
+        name: z.string().min(1, "Name is required").optional(),
+        instagram: z.string().optional(),
+        profilePicture: z.string().optional(),
+        description: z.string().optional(),
+        specialties: z.array(z.string()).optional(),
+      }),
+      responses: {
+        200: z.object({
+          id: z.number(),
+          name: z.string(),
+          email: z.string(),
+          isAthlete: z.boolean(),
+          isCoach: z.boolean(),
+          profilePicture: z.string().nullable(),
+          role: z.string().optional(),
+        }),
+        400: errorSchemas.validation,
+        401: errorSchemas.validation,
+      },
+    },
   },
   admin: {
     pendingReviews: {

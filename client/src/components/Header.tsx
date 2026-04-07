@@ -46,23 +46,20 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-3">
           {isAuthenticated && user ? (
             <>
-              <div className="flex items-center gap-3 text-white">
-                <Avatar className="h-9 w-9 border-2 border-white/20">
-                  <AvatarImage src={user.profilePicture || undefined} alt={user.name} />
-                  <AvatarFallback className="bg-[#F5C518] text-[#202020] font-bold text-sm">
-                    {getInitials(user.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-sm">
-                  <p className="font-semibold">{user.name}</p>
-                  <p className="text-xs text-gray-400">
-                    {user.isAthlete && user.isCoach ? "Athlete & Coach" : user.isAthlete ? "Athlete" : "Coach"}
-                  </p>
-                </div>
-              </div>
+              <Link href="/profile">
+                <button className="px-3 py-2 rounded-lg text-sm font-semibold text-white hover:bg-white/10 transition-colors flex items-center gap-2">
+                  <Avatar className="h-8 w-8 border-2 border-white/20">
+                    <AvatarImage src={user.profilePicture || undefined} alt={user.name} />
+                    <AvatarFallback className="bg-[#F5C518] text-[#202020] font-bold text-xs">
+                      {getInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden lg:inline">{user.name}</span>
+                </button>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2.5 rounded-lg text-sm font-semibold btn-secondary-dark flex items-center gap-2"
@@ -143,20 +140,17 @@ export function Header() {
             <div className="p-4 flex flex-col gap-3">
               {isAuthenticated && user ? (
                 <>
-                  <div className="flex items-center gap-3 text-white px-2 py-2">
-                    <Avatar className="h-10 w-10 border-2 border-white/20">
-                      <AvatarImage src={user.profilePicture || undefined} alt={user.name} />
-                      <AvatarFallback className="bg-[#F5C518] text-[#202020] font-bold">
-                        {getInitials(user.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold">{user.name}</p>
-                      <p className="text-xs text-gray-400">
-                        {user.isAthlete && user.isCoach ? "Athlete & Coach" : user.isAthlete ? "Athlete" : "Coach"}
-                      </p>
-                    </div>
-                  </div>
+                  <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                    <button className="w-full py-3 rounded-lg text-sm font-semibold btn-secondary-dark flex items-center justify-center gap-2">
+                      <Avatar className="h-8 w-8 border-2 border-white/20">
+                        <AvatarImage src={user.profilePicture || undefined} alt={user.name} />
+                        <AvatarFallback className="bg-[#F5C518] text-[#202020] font-bold text-xs">
+                          {getInitials(user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {user.name}
+                    </button>
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="w-full py-3 rounded-lg text-sm font-semibold btn-secondary-dark flex items-center justify-center gap-2"

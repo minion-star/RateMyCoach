@@ -8,6 +8,7 @@ interface User {
   email: string;
   isAthlete: boolean;
   isCoach: boolean;
+  instagram: string | null;
   profilePicture: string | null;
   role?: string;
 }

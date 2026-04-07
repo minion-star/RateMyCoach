@@ -10,6 +10,7 @@ import CoachProfile from "@/pages/CoachProfile";
 import SearchResults from "@/pages/SearchResults";
 import Auth from "@/pages/Auth";
 import Login from "@/pages/Login";
+import Profile from "@/pages/Profile";
 import RateCoach from "@/pages/RateCoach";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AboutUs from "@/pages/AboutUs";
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/coach/:id" component={CoachProfile} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Auth} />
+      <Route path="/profile" component={Profile} />
       <Route path="/rate-coach" component={RateCoach} />
       <Route path="/rate" component={RateCoach} />
       <Route path="/admin" component={AdminDashboard} />
